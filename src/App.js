@@ -3,8 +3,22 @@
 // Version:     4.xx
 import React, { Component } from 'react';
 import Country from './components/Country';
-import NewCountry from './components/NewCountry';
+//import NewCountry from './components/NewCountry';
+import Container from 'react-bootstrap/Container';
+import Navbar from 'react-bootstrap/Navbar';
+import Badge from 'react-bootstrap/Badge';
+import Button from 'react-bootstrap/Button';
+import { PlusCircleFill } from 'react-bootstrap-icons';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Modal from 'react-bootstrap/Modal';
+import Form from 'react-bootstrap/Form';
+import Toast from 'react-bootstrap/Toast';
+import { TrashFill } from 'react-bootstrap-icons';
+
 import './App.css';
+import './App.css';
+import { ToastContainer } from 'react-bootstrap';
 
 class App extends Component {
   state = {
@@ -17,13 +31,23 @@ class App extends Component {
       { id: 1, name: 'gold' },
       { id: 2, name: 'silver' },
       { id: 3, name: 'bronze' },
-    ]
+    ],
+
+    show: false,
+    newCountryName: "",
+    toast: false,
   }
-  handleAdd = (name) => {
-    const { countries } = this.state;
-    const id = countries.length === 0 ? 1 : Math.max(...countries.map(country => country.id)) + 1;
-    const mutableCountries = [...countries].concat({ id: id, name: name, gold: 0, silver: 0, bronze: 0 });
-    this.setState({ countries: mutableCountries });
+  
+  handleChange = (e) => this.setState({ [e.target.name]: e.target.value});
+  handleAdd = () => {
+    if (this.state.newCountryName.length > 0) {
+      const { countries } = this.state;
+      const id = countries.length === 0 ? 1 : Math.max(...countries.map(country => country.id)) + 1;
+      const mutableCountries = [...countries].concat({ id: id, name: this.state.newCountryName, gold: 0, silver: 0, bronze: 0 });
+      this.setState({ countries: mutableCountries });
+    }
+    this.showToast();
+    this.handleClose();
   }
   handleDelete = (countryId) => {
     const { countries } = this.state;
@@ -47,27 +71,95 @@ class App extends Component {
     this.state.medals.forEach(medal => { sum += this.state.countries.reduce((a, b) => a + b[medal.name], 0); });
     return sum;
   }
+
+  handleClose = () =>  {
+    this.setState({ show:false });
+  }
+  handleShow = () => {
+    this.state.newCountryName = "";
+    this.setState({ show:true });
+  }
+  keyPress = (e) => {
+    (e.keyCode ? e.keyCode : e.which) == '13' && this.handleAdd();
+  }
+
+  hideToast = () =>{
+    this.setState({toast:false});
+  }
+
+  showToast = () =>{
+      this.setState({toast:true});
+  }
+
   render() { 
     return (
       <React.Fragment>
-        <div className='appHeading'>
-          Olympic Medals
-          <span className='badge'>
-            { this.getAllMedalsTotal() }
-          </span>
-        </div>
-        <div className='countries'>
-            { this.state.countries.map(country => 
-              <Country 
-                key={ country.id } 
-                country={ country } 
-                medals={ this.state.medals }
-                onDelete={ this.handleDelete }
-                onIncrement={ this.handleIncrement } 
-                onDecrement={ this.handleDecrement } />
-            )}
-        </div>
-        <NewCountry onAdd={ this.handleAdd } />
+        {/* <Button variant="outline-success" onClick={this.showToast}>Show Toast</Button> */}
+        
+        <Modal onKeyPress={ this.keyPress } show={this.state.show} onHide={this.handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>New Country</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+            <Form.Label>Country Name</Form.Label>
+            <Form.Control
+              type="text"
+              name="newCountryName"
+              onChange={ this.handleChange }
+              value={ this.state.newCountryName }
+              autoComplete='off'
+              placeholder="enter name"
+              autoFocus
+            />
+          </Form.Group>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button variant="secondary" onClick={ this.handleClose }>
+            Close
+          </Button>
+          <Button variant="primary" onClick={this.handleAdd}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+        <Navbar className="navbar-dark bg-dark">
+          <Container fluid>
+            <Navbar.Brand>
+              Olympic Medals
+              <Badge className="ml-2" bg="light" text="dark" pill>{ this.getAllMedalsTotal() }</Badge>
+            </Navbar.Brand>
+            <Button variant="outline-success" onClick={ this.handleShow }><PlusCircleFill /></Button>{' '}
+          </Container>
+      </Navbar>
+
+      <Container fluid>
+      <ToastContainer position='top-end'>
+          <Toast show={this.state.toast} onClose={this.hideToast} position="top-end" delay={3000}>
+            {/* <Toast.Header closeButton="false">
+              <p>Error with Country Addtion</p>
+              <button type='button' className='btn-close' data-bs-dismiss="toast" aria-label="close"></button>
+            </Toast.Header> */}
+            <Toast.Body>You cannot enter a country with a blank name.</Toast.Body>
+            <button variant="outline-success" position="middle-end" onClick={this.hideToast}><TrashFill /></button>
+          </Toast>
+        </ToastContainer>
+        <Row>
+        { this.state.countries.map(country => 
+          <Col className="mt-3" key={ country.id }>
+          <Country 
+              country={ country } 
+              medals={ this.state.medals }
+              onDelete={ this.handleDelete }
+              onIncrement={ this.handleIncrement } 
+              onDecrement={ this.handleDecrement } />
+          </Col>
+        )}
+        </Row>
+      </Container>
       </React.Fragment>
     );
   }
