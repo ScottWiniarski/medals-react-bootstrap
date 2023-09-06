@@ -95,7 +95,6 @@ class App extends Component {
     return (
       <React.Fragment>
         {/* <Button variant="outline-success" onClick={this.showToast}>Show Toast</Button> */}
-        
         <Modal onKeyPress={ this.keyPress } show={this.state.show} onHide={this.handleClose}>
         <Modal.Header closeButton>
           <Modal.Title>New Country</Modal.Title>
