@@ -1,19 +1,19 @@
-import React, { Component } from 'react';
+import React from 'react';
 import Medal from './Medal';
 import Card from 'react-bootstrap/Card'
 import Badge from 'react-bootstrap/Badge';
 import ListGroup from 'react-bootstrap/ListGroup';
 import { TrashFill } from 'react-bootstrap-icons';
 
+const Country = (props) => {
+  const { country, medals, onIncrement, onDecrement, onDelete } = props;
 
-class Country extends Component {
-  getMedalsTotal(country, medals) {
+  const getMedalsTotal = (country, medals) => {
     let sum = 0;
     medals.forEach(medal => { sum += country[medal.name]; });
     return sum;
   }
-  render() { 
-    const { country, medals, onIncrement, onDecrement, onDelete } = this.props;
+   
     return (
       <Card style={{width:"22rem"}}>
         <Card.Body>
@@ -21,7 +21,7 @@ class Country extends Component {
           <span>
             { country.name }
             <Badge bg="secondary" text="light" pill className="m1-2">
-              { this.getMedalsTotal(country, medals) }
+              { getMedalsTotal(country, medals) }
             </Badge>
             </span>
 
@@ -42,6 +42,4 @@ class Country extends Component {
       </Card>
     );
   }
-}
-
 export default Country;
