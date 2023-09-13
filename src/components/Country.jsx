@@ -10,7 +10,7 @@ const Country = (props) => {
 
   const getMedalsTotal = (country, medals) => {
     let sum = 0;
-    medals.forEach(medal => { sum += country[medal.name]; });
+    medals.current.forEach(medal => { sum += country[medal.name]; });
     return sum;
   }
    
@@ -28,7 +28,7 @@ const Country = (props) => {
             <TrashFill onClick={() => onDelete(country.id)} className='icon-btn' style={{ color:'red' }} />
           </Card.Title>
           <ListGroup variant="flush">
-          { medals.map(medal =>
+          { medals.current.map(medal =>
           <ListGroup.Item className="d-flex justify-content-between" key={ medal.id } >
             <Medal 
               country={ country } 
