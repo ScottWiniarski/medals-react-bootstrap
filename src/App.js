@@ -47,23 +47,8 @@ const App = () =>  {
   // }
 
   const handleAdd = async (newCountryName) => {
-    // const additonalCountries = countries;
-    // boolean isPresent;
-    // foreach(Country country in additonalCountries)
-    // {
-    //   if(country.name == newCountryName){
-    //     isPresent = true;
-    //   }
-    // }
-    // if(isPresent == false){
-    //   const { data: post } = await axios.post(apiEndpoint, { name: newCountryName });
-    //   setCountries(countries.concat(post));
-    // }
-    // else{
-    //   alert("Could not add a new country");
-    // } 
-
     //const { data: post } = await axios.post(apiEndpoint, { name: newCountryName, gold: gold, silver: silver, bronze: bronze });
+    newCountryName = newCountryName[0].toUpperCase() + newCountryName.substring(1);
     const { data: post } = await axios.post(apiEndpoint, { name: newCountryName });
     setCountries(countries.concat(post));
   }
