@@ -2,126 +2,162 @@
 // Author:      Jeff Grissom
 // Version:     4.xx
 import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import Country from './components/Country';
-//import NewCountry from './components/NewCountry';
+import NewCountry from './components/NewCountry';
 import Container from 'react-bootstrap/Container';
 import Navbar from 'react-bootstrap/Navbar';
 import Badge from 'react-bootstrap/Badge';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import './App.css';
-import NewCountry from './components/NewCountry';
-import axios from 'axios';
 
-const App = () =>  {
-
-  const [countries, setCountries] = useState([]);
-  //const apiEndpoint = "https://olympicmedals-sfw.azurewebsites.net/swagger/index.html";
+const App = () => {
   const apiEndpoint = "https://olympicmedals-sfw.azurewebsites.net/api/country";
+  const [ countries, setCountries ] = useState([]);
   const medals = useRef([
-    {id: 1, name: 'gold'},
-    {id: 2, name: 'silver'},
-    {id: 3, name: 'bronze'},
+    { id: 1, name: 'gold' },
+    { id: 2, name: 'silver' },
+    { id: 3, name: 'bronze' },
   ]);
-  
+
+  // this is the functional equivalent to componentDidMount
   useEffect(() => {
-    // let fetchedCountries = [
-    //       { id: 1, name: 'United States', gold: 2, silver: 2, bronze: 3 },
-    //       { id: 2, name: 'China', gold: 3, silver: 1, bronze: 0 },
-    //       { id: 3, name: 'Germany', gold: 0, silver: 2, bronze: 2 },
-    //     ]
-    // setCountries(fetchedCountries);
-    async function fetchData() {
-      const { data: fetchedCountries } = await axios.get(apiEndpoint);
-      setCountries(fetchedCountries);
+    // initial data loaded here
+    async function fetchCountries() {
+      const { data : fetchedCountries } = await axios.get(apiEndpoint);
+      // we need to save the original medal count values in state
+      let newCountries = [];
+      fetchedCountries.forEach(country => {
+        let newCountry = {
+          id: country.id,
+          name: country.name,
+        };
+        medals.current.forEach(medal => {
+          const count = country[medal.name];
+          // page_value is what is displayed on the web page
+          // saved_value is what is saved to the database
+          newCountry[medal.name] = { page_value: count, saved_value: count };
+        });
+        newCountries.push(newCountry);
+      });
+      setCountries(newCountries);
     }
-    fetchData(); 
+    fetchCountries();
   }, []);
-  
-  // const handleChange = (e) => useState({ [e.target.name]: e.target.value});
-  
-  // const handleAdd = (newCountryName) => {
-  //     const id = countries.length === 0 ? 1 : Math.max(...countries.map(country => country.id)) + 1;
-  //     const mutableCountries = [...countries].concat({ id: id, name: newCountryName, gold: 0, silver: 0, bronze: 0 });
-  //     setCountries( mutableCountries );
-  // }
 
-  const handleAdd = async (newCountryName) => {
-    //const { data: post } = await axios.post(apiEndpoint, { name: newCountryName, gold: gold, silver: silver, bronze: bronze });
-    newCountryName = newCountryName[0].toUpperCase() + newCountryName.substring(1);
-    const { data: post } = await axios.post(apiEndpoint, { name: newCountryName });
-    setCountries(countries.concat(post));
+  const handleAdd = async (name) => {
+    const { data: post } = await axios.post(apiEndpoint, { name: name });
+    let newCountry = { 
+      id: post.id, 
+      name: post.name,
+    };
+    medals.current.forEach(medal => {
+      const count = post[medal.name];
+      // when a new country is added, we need to store page and saved values for
+      // medal counts in state
+      newCountry[medal.name] = { page_value: count, saved_value: count };
+    });
+    setCountries(countries.concat(newCountry));
   }
-
-  // const handleDelete = (countryId) => {
-  //   const mutableCountries = [...countries].filter(c => c.id !== countryId);
-  //   setCountries( mutableCountries );
-  // }
-
   const handleDelete = async (countryId) => {
-    const mutableCountries = countries;
+    const originalCountries = countries;
     setCountries(countries.filter(c => c.id !== countryId));
     try {
       await axios.delete(`${apiEndpoint}/${countryId}`);
-    } catch(ex) {
+    } catch (ex) {
       if (ex.response && ex.response.status === 404) {
-        console.log("The Country's record does not exist - it may have already been deleted");
+        // country already deleted
+        console.log("The record does not exist - it may have already been deleted");
       } else { 
-        alert(`An error occurred while attempting to delete a country == ${countryId}`);
-        setCountries(mutableCountries);
+        alert('An error occurred while deleting');
+        setCountries(originalCountries);
       }
     }
   }
 
+  const handleSave = async (countryId) => {
+    const originalCountries = countries;
 
-  const handleIncrement = (countryId, medalName) => {
-    const mutCountries = [ ...countries ];
-    const idx = mutCountries.findIndex(c => c.id === countryId);
-    mutCountries[idx][medalName] += 1;
-    setCountries( mutCountries );
+    const idx = countries.findIndex(c => c.id === countryId);
+    const mutableCountries = [ ...countries ];
+    const country = mutableCountries[idx];
+    let jsonPatch = [];
+    medals.current.forEach(medal => {
+      if (country[medal.name].page_value !== country[medal.name].saved_value) {
+        jsonPatch.push({ op: "replace", path: medal.name, value: country[medal.name].page_value });
+        country[medal.name].saved_value = country[medal.name].page_value;
+      }
+    });
+    console.log(`json patch for id: ${countryId}: ${JSON.stringify(jsonPatch)}`);
+    // update state
+    setCountries(mutableCountries);
+
+    try {
+      await axios.patch(`${apiEndpoint}/${countryId}`, jsonPatch);
+    } catch (ex) {
+      if (ex.response && ex.response.status === 404) {
+        // country already deleted
+        console.log("The record does not exist - it may have already been deleted");
+      } else { 
+        alert('An error occurred while updating');
+        setCountries(originalCountries);
+      }
+    }
   }
-  const handleDecrement = (countryId, medalName) => {
-    const mutCountries = [ ...countries ];
-    const idx = mutCountries.findIndex(c => c.id === countryId);
-    mutCountries[idx][medalName] -= 1;
-    setCountries( mutCountries );
+  const handleReset = (countryId) => {
+    // to reset, make page value the same as the saved value
+    const idx = countries.findIndex(c => c.id === countryId);
+    const mutableCountries = [ ...countries ];
+    const country = mutableCountries[idx];
+    medals.current.forEach(medal => {
+      country[medal.name].page_value = country[medal.name].saved_value;
+    });
+    setCountries(mutableCountries);
   }
-  const getAllMedalsTotal =() => {
+  const handleIncrement = (countryId, medalName) => handleUpdate(countryId, medalName, 1);
+  const handleDecrement = (countryId, medalName) => handleUpdate(countryId, medalName, -1);
+  const handleUpdate = (countryId, medalName, factor) => {
+    const idx = countries.findIndex(c => c.id === countryId);
+    const mutableCountries = [...countries ];
+    mutableCountries[idx][medalName].page_value += (1 * factor);
+    setCountries(mutableCountries);
+  }
+  const getAllMedalsTotal = () => {
     let sum = 0;
-    medals.current.forEach(medal => { sum += countries.reduce((a, b) => a + b[medal.name], 0); });
+    // use medal count displayed in the web page for medal count totals
+    medals.current.forEach(medal => { sum += countries.reduce((a, b) => a + b[medal.name].page_value, 0); });
     return sum;
   }
-  
   return (
     <React.Fragment>
-    
-      <Navbar className="navbar-dark bg-dark">
+    <Navbar className="navbar-dark bg-dark">
         <Container fluid>
           <Navbar.Brand>
             Olympic Medals
             <Badge className="ml-2" bg="light" text="dark" pill>{ getAllMedalsTotal() }</Badge>
           </Navbar.Brand>
-        <NewCountry onAdd={ handleAdd} />
+          <NewCountry onAdd={ handleAdd } />
         </Container>
     </Navbar>
-
     <Container fluid>
-      <Row>
+    <Row>
       { countries.map(country => 
         <Col className="mt-3" key={ country.id }>
-        <Country 
+          <Country  
             country={ country } 
-            medals={ medals }
+            medals={ medals.current }
             onDelete={ handleDelete }
-            onIncrement={handleIncrement } 
-            onDecrement={handleDecrement } />
+            onSave={ handleSave }
+            onReset={ handleReset }
+            onIncrement={ handleIncrement } 
+            onDecrement={ handleDecrement } />
         </Col>
       )}
       </Row>
     </Container>
     </React.Fragment>
   );
-  
 }
  
 export default App;
