@@ -46,8 +46,9 @@ const App = () => {
     fetchCountries();
   }, []);
 
-  const handleAdd = async (name) => {
-    const { data: post } = await axios.post(apiEndpoint, { name: name });
+  const handleAdd = async (newCountryName) => {
+    newCountryName = newCountryName[0].toUpperCase() + newCountryName.substring(1);
+    const { data: post } = await axios.post(apiEndpoint, { name: newCountryName });
     let newCountry = { 
       id: post.id, 
       name: post.name,
