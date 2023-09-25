@@ -1,6 +1,6 @@
 import React from 'react';
 import Medal from './Medal';
-import { TrashFill } from 'react-bootstrap-icons';
+import { TrashFill, Save2Fill, SaveFill, ArrowCounterclockwise } from 'react-bootstrap-icons';
 import Card from 'react-bootstrap/Card';
 import Badge from 'react-bootstrap/Badge';
 import ListGroup from 'react-bootstrap/ListGroup';
@@ -39,8 +39,10 @@ const Country = (props) => {
           { renderSaveButton() ?
             <React.Fragment>
               {/* TODO: use Bootstrap stying / icons */}
-              <button onClick={ () => onSave(country.id) }>save</button>
-              <button onClick={ () => onReset(country.id) }>reset</button>
+              <SaveFill className='icon-btn' onClick={ () => onSave(country.id) }>save </SaveFill>
+              {/* <button onClick={ () => onSave(country.id) }>save</button> */}
+              <ArrowCounterclockwise className='icon-btn' onClick={ () => onReset(country.id) }>reset</ArrowCounterclockwise>
+              {/* <button onClick={ () => onReset(country.id) }>reset</button> */}
             </React.Fragment>
             :
             <TrashFill onClick={() => onDelete(country.id)} className='icon-btn' style={{ color:'red' }} />
