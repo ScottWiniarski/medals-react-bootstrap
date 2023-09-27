@@ -14,10 +14,10 @@ import Col from 'react-bootstrap/Col';
 import './App.css';
 
 const App = () => {
-  //const apiEndpoint = "https://olympicmedals-sfw.azurewebsites.net/api/country";
-  //const hubEndpoint = "https://medals-api-6.azurewebsites.net/medalsHub"
-  const apiEndpoint = "https://localhost:7130/api/country";
-  const hubEndpoint = "https://localhost:7130/medalsHub";
+  const apiEndpoint = "https://olympicmedals-sfw.azurewebsites.net/api/country";
+  const hubEndpoint = "https://olympicmedals-sfw.azurewebsites.net/medalsHub"
+  //const apiEndpoint = "https://localhost:7130/api/country";
+  //const hubEndpoint = "https://localhost:7130/medalsHub";
   const [ countries, setCountries ] = useState([]);
   const [ connection, setConnection] = useState(null);
   const medals = useRef([
