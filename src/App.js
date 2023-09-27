@@ -3,6 +3,7 @@
 // Version:     4.xx
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { HubConnectionBuilder } from '@microsoft/signalr';
 import Country from './components/Country';
 import NewCountry from './components/NewCountry';
 import Container from 'react-bootstrap/Container';
@@ -13,13 +14,21 @@ import Col from 'react-bootstrap/Col';
 import './App.css';
 
 const App = () => {
-  const apiEndpoint = "https://olympicmedals-sfw.azurewebsites.net/api/country";
+  //const apiEndpoint = "https://olympicmedals-sfw.azurewebsites.net/api/country";
+  //const hubEndpoint = "https://medals-api-6.azurewebsites.net/medalsHub"
+  const apiEndpoint = "https://localhost:7130/api/country";
+  const hubEndpoint = "https://localhost:7130/medalsHub";
   const [ countries, setCountries ] = useState([]);
+  const [ connection, setConnection] = useState(null);
   const medals = useRef([
     { id: 1, name: 'gold' },
     { id: 2, name: 'silver' },
     { id: 3, name: 'bronze' },
   ]);
+  const latestCountries = useRef(null);
+  // latestCountries.current is a ref variable to countries
+  // this is needed to access state variable in useEffect w/o dependency
+  latestCountries.current = countries;
 
   // this is the functional equivalent to componentDidMount
   useEffect(() => {
@@ -44,22 +53,46 @@ const App = () => {
       setCountries(newCountries);
     }
     fetchCountries();
+
+    // signalR
+    const newConnection = new HubConnectionBuilder()
+      .withUrl(hubEndpoint)
+      .withAutomaticReconnect()
+      .build();
+
+    setConnection(newConnection);
   }, []);
 
+  // componentDidUpdate (changes to connection)
+  useEffect(() => {
+    if (connection) {
+      connection.start()
+      .then(() => {
+        console.log('Connected!')
+
+        connection.on('ReceiveAddMessage', country => {
+          console.log(`Add: ${country.name}`);
+
+          let newCountry = { 
+            id: country.id, 
+            name: country.name,
+          };
+          medals.current.forEach(medal => {
+            const count = country[medal.name];
+            newCountry[medal.name] = { page_value: count, saved_value: count };
+          });
+          let mutableCountries = [...latestCountries.current];
+          mutableCountries = mutableCountries.concat(newCountry);
+          setCountries(mutableCountries);
+        });
+      })
+      .catch(e => console.log('Connection failed: ', e));
+    }
+  // useEffect is dependent on changes connection
+  }, [connection]);
+
   const handleAdd = async (newCountryName) => {
-    newCountryName = newCountryName[0].toUpperCase() + newCountryName.substring(1);
-    const { data: post } = await axios.post(apiEndpoint, { name: newCountryName });
-    let newCountry = { 
-      id: post.id, 
-      name: post.name,
-    };
-    medals.current.forEach(medal => {
-      const count = post[medal.name];
-      // when a new country is added, we need to store page and saved values for
-      // medal counts in state
-      newCountry[medal.name] = { page_value: count, saved_value: count };
-    });
-    setCountries(countries.concat(newCountry));
+    await axios.post(apiEndpoint, { name: newCountryName });
   }
   const handleDelete = async (countryId) => {
     const originalCountries = countries;
