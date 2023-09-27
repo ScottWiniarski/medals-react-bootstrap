@@ -85,6 +85,30 @@ const App = () => {
           mutableCountries = mutableCountries.concat(newCountry);
           setCountries(mutableCountries);
         });
+
+        connection.on('ReceiveDeleteMessage', id => {
+          console.log(`Delete id: ${id}`);
+          let mutableCountries = [...latestCountries.current];
+          mutableCountries = mutableCountries.filter(c => c.id !== id);
+          setCountries(mutableCountries);
+        });
+
+        connection.on('ReceivePatchMessage', country => {
+          console.log(`Patch: ${country.name}`);
+          let updatedCountry = {
+            id: country.id,
+            name: country.name,
+          }
+          medals.current.forEach(medal => {
+            const count = country[medal.name];
+            updatedCountry[medal.name] = { page_value: count, saved_value: count };
+          });
+          let mutableCountries = [...latestCountries.current];
+          const idx = mutableCountries.findIndex(c => c.id === country.id);
+          mutableCountries[idx] = updatedCountry;
+
+          setCountries(mutableCountries);
+        });
       })
       .catch(e => console.log('Connection failed: ', e));
     }
@@ -92,8 +116,10 @@ const App = () => {
   }, [connection]);
 
   const handleAdd = async (newCountryName) => {
+    newCountryName = newCountryName[0].toUpperCase() + newCountryName.substring(1);
     await axios.post(apiEndpoint, { name: newCountryName });
   }
+
   const handleDelete = async (countryId) => {
     const originalCountries = countries;
     setCountries(countries.filter(c => c.id !== countryId));
