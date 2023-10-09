@@ -13,6 +13,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
 import Login from './components/Login';
+import Logout from './components/Logout';
 import './App.css';
 
 const App = () => {
@@ -23,6 +24,7 @@ const App = () => {
   //const hubEndpoint = "https://localhost:7130/medalsHub";
   const [ countries, setCountries ] = useState([]);
   const [ connection, setConnection] = useState(null);
+  const [ authenticated, setAuthenticated] = useState(false);
   const medals = useRef([
     { id: 1, name: 'gold' },
     { id: 2, name: 'silver' },
@@ -212,6 +214,7 @@ const App = () => {
       const resp = await axios.post(usersEndpoint, { username: username, password: password });
       const encodedJwt = resp.data.token;
       console.log(encodedJwt);
+      setAuthenticated(true);
     } catch (ex) {
       if (ex.response && (ex.response.status === 401 || ex.response.status === 400 )) {
         alert("Login failed");
@@ -221,6 +224,9 @@ const App = () => {
         console.log("Request failed");
       }
     }
+  }
+  const handleLogout = () => {
+    setAuthenticated(false);
   }
   const getAllMedalsTotal = () => {
     let sum = 0;
@@ -237,7 +243,7 @@ const App = () => {
             <Badge className="ml-2" bg="light" text="dark" pill>{ getAllMedalsTotal() }</Badge>
           </Navbar.Brand>
           <Nav className="me-auto">
-            <Login onLogin={ handleLogin } />
+          { authenticated ? <Logout onLogout={ handleLogout } /> : <Login onLogin={ handleLogin } /> }
             <NewCountry onAdd={ handleAdd } />
           </Nav>
         </Container>
