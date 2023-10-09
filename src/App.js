@@ -14,7 +14,7 @@ import Col from 'react-bootstrap/Col';
 import './App.css';
 
 const App = () => {
-  const apiEndpoint = "https://olympicmedals-sfw.azurewebsites.net/api/country";
+  const apiEndpoint = "https://olympicmedals-sfw.azurewebsites.net/jwt/api/country";
   const hubEndpoint = "https://olympicmedals-sfw.azurewebsites.net/medalsHub"
   //const apiEndpoint = "https://localhost:7130/api/country";
   //const hubEndpoint = "https://localhost:7130/medalsHub";
@@ -117,7 +117,18 @@ const App = () => {
 
   const handleAdd = async (newCountryName) => {
     newCountryName = newCountryName[0].toUpperCase() + newCountryName.substring(1);
-    await axios.post(apiEndpoint, { name: newCountryName });
+    // await axios.post(apiEndpoint, { name: name });
+    try {
+      await axios.post(apiEndpoint, { name: name });
+    } catch (ex) {
+      if (ex.response && (ex.response.status === 401 || ex.response.status === 403)) {
+        alert("You are not authorized to complete this request");
+      } else if (ex.response) {
+        console.log(ex.response);
+      } else {
+        console.log("Request failed");
+      }
+    }
   }
 
   const handleDelete = async (countryId) => {
@@ -130,8 +141,14 @@ const App = () => {
         // country already deleted
         console.log("The record does not exist - it may have already been deleted");
       } else { 
-        alert('An error occurred while deleting');
         setCountries(originalCountries);
+        if (ex.response && (ex.response.status === 401 || ex.response.status === 403)) {
+          alert("You are not authorized to complete this request");
+        } else if (ex.response) {
+          console.log(ex.response);
+        } else {
+          console.log("Request failed");
+        }
       }
     }
   }
@@ -159,6 +176,10 @@ const App = () => {
       if (ex.response && ex.response.status === 404) {
         // country already deleted
         console.log("The record does not exist - it may have already been deleted");
+      } else if (ex.response && ex.response.status === 401) {
+        alert('You are not authorized to complete this request');
+        // to simplify, I am reloading the page to restore "saved" values
+        window.location.reload(false);
       } else { 
         alert('An error occurred while updating');
         setCountries(originalCountries);
