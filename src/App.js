@@ -12,6 +12,7 @@ import Badge from 'react-bootstrap/Badge';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
+import Login from './components/Login';
 import './App.css';
 
 const App = () => {
@@ -120,7 +121,7 @@ const App = () => {
     newCountryName = newCountryName[0].toUpperCase() + newCountryName.substring(1);
     // await axios.post(apiEndpoint, { name: name });
     try {
-      await axios.post(apiEndpoint, { name: name });
+      await axios.post(apiEndpoint, { name: newCountryName });
     } catch (ex) {
       if (ex.response && (ex.response.status === 401 || ex.response.status === 403)) {
         alert("You are not authorized to complete this request");
@@ -205,6 +206,9 @@ const App = () => {
     mutableCountries[idx][medalName].page_value += (1 * factor);
     setCountries(mutableCountries);
   }
+  const handleLogin = (username, password) => {
+    console.log(`username: ${username}, password: ${password}`);
+  }
   const getAllMedalsTotal = () => {
     let sum = 0;
     // use medal count displayed in the web page for medal count totals
@@ -220,6 +224,7 @@ const App = () => {
             <Badge className="ml-2" bg="light" text="dark" pill>{ getAllMedalsTotal() }</Badge>
           </Navbar.Brand>
           <Nav className="me-auto">
+            <Login onLogin={ handleLogin } />
             <NewCountry onAdd={ handleAdd } />
           </Nav>
         </Container>
