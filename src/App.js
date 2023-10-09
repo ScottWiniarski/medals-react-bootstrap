@@ -286,7 +286,7 @@ const App = () => {
           </Navbar.Brand>
           <Nav className="me-auto">
           { user.authenticated ? <Logout onLogout={ handleLogout } /> : <Login onLogin={ handleLogin } /> }
-            <NewCountry onAdd={ handleAdd } />
+          { user.canPost && <NewCountry onAdd={ handleAdd } /> }
           </Nav>
         </Container>
     </Navbar>
