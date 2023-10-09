@@ -18,6 +18,7 @@ import './App.css';
 const App = () => {
   const apiEndpoint = "https://olympicmedals-sfw.azurewebsites.net/jwt/api/country";
   const hubEndpoint = "https://olympicmedals-sfw.azurewebsites.net/medalsHub"
+  const usersEndpoint = "https://medals-api-6.azurewebsites.net/api/users/login";
   //const apiEndpoint = "https://localhost:7130/api/country";
   //const hubEndpoint = "https://localhost:7130/medalsHub";
   const [ countries, setCountries ] = useState([]);
@@ -206,8 +207,20 @@ const App = () => {
     mutableCountries[idx][medalName].page_value += (1 * factor);
     setCountries(mutableCountries);
   }
-  const handleLogin = (username, password) => {
-    console.log(`username: ${username}, password: ${password}`);
+  const handleLogin = async (username, password) => {
+    try {
+      const resp = await axios.post(usersEndpoint, { username: username, password: password });
+      const encodedJwt = resp.data.token;
+      console.log(encodedJwt);
+    } catch (ex) {
+      if (ex.response && (ex.response.status === 401 || ex.response.status === 400 )) {
+        alert("Login failed");
+      } else if (ex.response) {
+        console.log(ex.response);
+      } else {
+        console.log("Request failed");
+      }
+    }
   }
   const getAllMedalsTotal = () => {
     let sum = 0;
