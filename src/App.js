@@ -134,7 +134,13 @@ const App = () => {
     newCountryName = newCountryName[0].toUpperCase() + newCountryName.substring(1);
     // await axios.post(apiEndpoint, { name: name });
     try {
-      await axios.post(apiEndpoint, { name: newCountryName });
+      await axios.post(apiEndpoint, {
+        name: newCountryName
+      }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
     } catch (ex) {
       if (ex.response && (ex.response.status === 401 || ex.response.status === 403)) {
         alert("You are not authorized to complete this request");
