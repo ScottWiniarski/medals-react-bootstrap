@@ -20,7 +20,7 @@ import './App.css';
 const App = () => {
   const apiEndpoint = "https://olympicmedals-sfw.azurewebsites.net/jwt/api/country";
   const hubEndpoint = "https://olympicmedals-sfw.azurewebsites.net/medalsHub"
-  const usersEndpoint = "https://medals-api-6.azurewebsites.net/api/users/login";
+  const usersEndpoint = "https://olympicmedals-sfw.azurewebsites.net/api/users/login";
   //const apiEndpoint = "https://localhost:7130/api/country";
   //const hubEndpoint = "https://localhost:7130/medalsHub";
   const [ countries, setCountries ] = useState([]);
