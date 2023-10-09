@@ -14,6 +14,7 @@ import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
 import Login from './components/Login';
 import Logout from './components/Logout';
+import jwtDecode from 'jwt-decode';
 import './App.css';
 
 const App = () => {
@@ -213,7 +214,7 @@ const App = () => {
     try {
       const resp = await axios.post(usersEndpoint, { username: username, password: password });
       const encodedJwt = resp.data.token;
-      console.log(encodedJwt);
+      console.log(getUser(encodedJwt));
       setAuthenticated(true);
     } catch (ex) {
       if (ex.response && (ex.response.status === 401 || ex.response.status === 400 )) {
@@ -224,6 +225,16 @@ const App = () => {
         console.log("Request failed");
       }
     }
+  }
+  const getUser = (encodedJwt) => {
+    // return unencoded user / permissions
+    const decodedJwt = jwtDecode(encodedJwt);
+    return {
+      name: decodedJwt['username'],
+      canPost: decodedJwt['roles'].indexOf('medals-post') === -1 ? false : true,
+      canPatch: decodedJwt['roles'].indexOf('medals-patch') === -1 ? false : true,
+      canDelete: decodedJwt['roles'].indexOf('medals-delete') === -1 ? false : true,
+    };
   }
   const handleLogout = () => {
     setAuthenticated(false);
