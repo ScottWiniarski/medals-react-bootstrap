@@ -136,7 +136,7 @@ const App = () => {
 
   const handleAdd = async (newCountryName) => {
     newCountryName = newCountryName[0].toUpperCase() + newCountryName.substring(1);
-    // await axios.post(apiEndpoint, { name: name });
+    // await axios.post(apiEndpoint, { name: newCountryName });
     try {
       await axios.post(apiEndpoint, {
         name: newCountryName
