@@ -25,12 +25,21 @@ const App = () => {
   //const hubEndpoint = "https://localhost:7130/medalsHub";
   const [ countries, setCountries ] = useState([]);
   const [ connection, setConnection] = useState(null);
-  const [ authenticated, setAuthenticated] = useState(false);
   const medals = useRef([
     { id: 1, name: 'gold' },
     { id: 2, name: 'silver' },
     { id: 3, name: 'bronze' },
   ]);
+
+  const [ user, setUser ] = useState(
+    {
+      name: null,
+      authenticated: false,
+      canPost: false,
+      canPatch: false,
+      canDelete: false
+    }
+  );
   const latestCountries = useRef(null);
   // latestCountries.current is a ref variable to countries
   // this is needed to access state variable in useEffect w/o dependency
@@ -214,8 +223,7 @@ const App = () => {
     try {
       const resp = await axios.post(usersEndpoint, { username: username, password: password });
       const encodedJwt = resp.data.token;
-      console.log(getUser(encodedJwt));
-      setAuthenticated(true);
+      setUser(getUser(encodedJwt));
     } catch (ex) {
       if (ex.response && (ex.response.status === 401 || ex.response.status === 400 )) {
         alert("Login failed");
@@ -231,13 +239,20 @@ const App = () => {
     const decodedJwt = jwtDecode(encodedJwt);
     return {
       name: decodedJwt['username'],
+      authenticated: true,
       canPost: decodedJwt['roles'].indexOf('medals-post') === -1 ? false : true,
       canPatch: decodedJwt['roles'].indexOf('medals-patch') === -1 ? false : true,
       canDelete: decodedJwt['roles'].indexOf('medals-delete') === -1 ? false : true,
     };
   }
   const handleLogout = () => {
-    setAuthenticated(false);
+    setUser({
+      name: null,
+      authenticated: false,
+      canPost: false,
+      canPatch: false,
+      canDelete: false
+    });
   }
   const getAllMedalsTotal = () => {
     let sum = 0;
@@ -254,7 +269,7 @@ const App = () => {
             <Badge className="ml-2" bg="light" text="dark" pill>{ getAllMedalsTotal() }</Badge>
           </Navbar.Brand>
           <Nav className="me-auto">
-          { authenticated ? <Logout onLogout={ handleLogout } /> : <Login onLogin={ handleLogin } /> }
+          { user.authenticated ? <Logout onLogout={ handleLogout } /> : <Login onLogin={ handleLogin } /> }
             <NewCountry onAdd={ handleAdd } />
           </Nav>
         </Container>
