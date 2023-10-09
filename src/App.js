@@ -299,6 +299,7 @@ const App = () => {
             medals={ medals.current }
             onDelete={ handleDelete }
             canDelete={ user.canDelete }
+            canPatch={ user.canPatch }
             onSave={ handleSave }
             onReset={ handleReset }
             onIncrement={ handleIncrement } 
